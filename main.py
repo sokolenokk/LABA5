@@ -413,6 +413,178 @@ class FileDialogTab(QWidget):
             self.info_text.setText(f"Ошибка чтения файла:\n{str(e)}")
 
 
+class TextOutputTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+        layout.setSpacing(15)
+
+        title = QLabel("Обработка текста")
+        title.setFont(QFont("Arial", 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        input_label = QLabel("Введите текст:")
+        input_label.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
+        layout.addWidget(input_label)
+
+        self.input_field = QLineEdit()
+        self.input_field.setPlaceholderText("Введите что-нибудь и нажмите кнопку...")
+        self.input_field.setStyleSheet("""
+            QLineEdit {
+                color: #000000;
+                padding: 12px;
+                font-size: 14px;
+                border: 2px solid rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+            QLineEdit:focus {
+                border-color: #1559EA;
+            }
+        """)
+        self.input_field.returnPressed.connect(self.process_text)
+        layout.addWidget(self.input_field)
+
+        buttons_layout = QHBoxLayout()
+
+        process_btn = QPushButton("Вывести текст")
+        process_btn.clicked.connect(self.process_text)
+        process_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1559EA;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        buttons_layout.addWidget(process_btn)
+
+        upper_btn = QPushButton("В верхний регистр")
+        upper_btn.clicked.connect(self.to_upper)
+        upper_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1559EA;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        buttons_layout.addWidget(upper_btn)
+
+        reverse_btn = QPushButton("Перевернуть")
+        reverse_btn.clicked.connect(self.reverse_text)
+        reverse_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #61A6FA;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        buttons_layout.addWidget(reverse_btn)
+
+        clear_btn = QPushButton("Очистить")
+        clear_btn.clicked.connect(self.clear_all)
+        clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0, 0, 0, 0.2);
+                color: rgba(0, 0, 0, 0.7);
+                border: none;
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 0.3);
+            }
+        """)
+        buttons_layout.addWidget(clear_btn)
+
+        layout.addLayout(buttons_layout)
+
+        output_label = QLabel("Результат:")
+        output_label.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
+        layout.addWidget(output_label)
+
+        self.output_area = QTextEdit()
+        self.output_area.setReadOnly(True)
+        self.output_area.setStyleSheet("""
+            QTextEdit {
+                background-color: rgba(0, 0, 0, 0.05);
+                color: rgba(0, 0, 0, 0.8);
+                font-family: Consolas, Monaco, monospace;
+                font-size: 14px;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
+        layout.addWidget(self.output_area)
+
+        self.stats_label = QLabel("Статистика: 0 символов, 0 слов")
+        self.stats_label.setAlignment(Qt.AlignCenter)
+        self.stats_label.setStyleSheet("color: rgba(0, 0, 0, 0.5);")
+        layout.addWidget(self.stats_label)
+
+        self.setLayout(layout)
+
+    def process_text(self):
+        text = self.input_field.text()
+        if text:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            self.output_area.append(f"[{timestamp}] {text}")
+            self.update_stats(text)
+        else:
+            QMessageBox.warning(self, "Внимание", "Введите текст!")
+
+    def to_upper(self):
+        text = self.input_field.text()
+        if text:
+            result = text.upper()
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            self.output_area.append(f"[{timestamp}] UPPER: {result}")
+            self.update_stats(text)
+
+    def reverse_text(self):
+        text = self.input_field.text()
+        if text:
+            result = text[::-1]
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            self.output_area.append(f"[{timestamp}] REVERSE: {result}")
+            self.update_stats(text)
+
+    def clear_all(self):
+        self.input_field.clear()
+        self.output_area.clear()
+        self.stats_label.setText("Статистика: 0 символов, 0 слов")
+
+    def update_stats(self, text):
+        chars = len(text)
+        words = len(text.split())
+        self.stats_label.setText(f"Статистика: {chars} символов, {words} слов")
 
 
 class MainWindow(QMainWindow):
@@ -471,6 +643,7 @@ class MainWindow(QMainWindow):
         tabs = QTabWidget()
         tabs.addTab(ProgressBarTab(), "1. Прогрессбар")
         tabs.addTab(FileDialogTab(), "2. Выбор файла")
+        tabs.addTab(TextOutputTab(), "3. Текст + кнопка")
 
         main_layout.addWidget(tabs)
 
