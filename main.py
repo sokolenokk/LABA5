@@ -587,6 +587,224 @@ class TextOutputTab(QWidget):
         self.stats_label.setText(f"Статистика: {chars} символов, {words} слов")
 
 
+class LocalChatTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.current_user = "User1"
+        self.user_colors = {
+            "User1": "#1559EA",
+            "User2": "#61A6FA",
+            "Bot": "#3479E9"
+        }
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+        layout.setSpacing(10)
+
+        title = QLabel("Локальный чат")
+        title.setFont(QFont("Arial", 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        controls_layout = QHBoxLayout()
+
+        user_label = QLabel("Пользователь:")
+        user_label.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
+        controls_layout.addWidget(user_label)
+
+        self.user1_btn = QPushButton("User 1")
+        self.user1_btn.setCheckable(True)
+        self.user1_btn.setChecked(True)
+        self.user1_btn.clicked.connect(lambda: self.set_user("User1"))
+        self.user1_btn.setStyleSheet(self.get_user_btn_style("#1559EA", True))
+        controls_layout.addWidget(self.user1_btn)
+
+        self.user2_btn = QPushButton("User 2")
+        self.user2_btn.setCheckable(True)
+        self.user2_btn.clicked.connect(lambda: self.set_user("User2"))
+        self.user2_btn.setStyleSheet(self.get_user_btn_style("#61A6FA", False))
+        controls_layout.addWidget(self.user2_btn)
+
+        controls_layout.addStretch()
+
+        bot_btn = QPushButton("Сообщение от бота")
+        bot_btn.clicked.connect(self.bot_message)
+        bot_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #61A6FA;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        controls_layout.addWidget(bot_btn)
+
+        clear_btn = QPushButton("Очистить чат")
+        clear_btn.clicked.connect(self.clear_chat)
+        clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0, 0, 0, 0.2);
+                color: rgba(0, 0, 0, 0.7);
+                border: none;
+                padding: 8px 15px;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 0.3);
+            }
+        """)
+        controls_layout.addWidget(clear_btn)
+
+        layout.addLayout(controls_layout)
+
+        self.chat_area = QTextEdit()
+        self.chat_area.setReadOnly(True)
+        self.chat_area.setStyleSheet("""
+            QTextEdit {
+                background-color: rgba(0, 0, 0, 0.05);
+                color: rgba(0, 0, 0, 0.8);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 13px;
+            }
+        """)
+        layout.addWidget(self.chat_area)
+
+        input_layout = QHBoxLayout()
+
+        self.message_input = QLineEdit()
+        self.message_input.setPlaceholderText("Введите сообщение...")
+        self.message_input.setStyleSheet("""
+            QLineEdit {
+                background-color: rgba(0, 0, 0, 0.05);
+                color: rgba(0, 0, 0, 0.8);
+                padding: 12px;
+                font-size: 14px;
+                border: 2px solid rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
+            QLineEdit:focus {
+                border-color: #1559EA;
+            }
+        """)
+        self.message_input.returnPressed.connect(self.send_message)
+        input_layout.addWidget(self.message_input)
+
+        send_btn = QPushButton("Отправить")
+        send_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1559EA;
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        send_btn.clicked.connect(self.send_message)
+        input_layout.addWidget(send_btn)
+
+        layout.addLayout(input_layout)
+
+        self.setLayout(layout)
+
+        self.add_system_message("Добро пожаловать в локальный чат!")
+
+    def get_user_btn_style(self, color, active):
+        if active:
+            return f"""
+                QPushButton {{
+                    background-color: {color};
+                    color: white;
+                    border: none;
+                    padding: 8px 15px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    border-radius: 8px;
+                }}
+            """
+        else:
+            return f"""
+                QPushButton {{
+                    background-color: rgba(0, 0, 0, 0.05);
+                    color: {color};
+                    border: 2px solid {color};
+                    padding: 8px 15px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    border-radius: 8px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(0, 0, 0, 0.1);
+                }}
+            """
+
+    def set_user(self, user):
+        self.current_user = user
+        self.user1_btn.setChecked(user == "User1")
+        self.user2_btn.setChecked(user == "User2")
+        self.user1_btn.setStyleSheet(self.get_user_btn_style("#1559EA", user == "User1"))
+        self.user2_btn.setStyleSheet(self.get_user_btn_style("#61A6FA", user == "User2"))
+
+    def send_message(self):
+        text = self.message_input.text().strip()
+        if text:
+            self.add_message(self.current_user, text)
+            self.message_input.clear()
+
+    def add_message(self, user, text):
+        timestamp = datetime.now().strftime("%H:%M")
+        color = self.user_colors.get(user, "#333")
+        html = f"""
+        <div style="margin: 5px 0;">
+            <span style="color: {color}; font-weight: bold;">{user}</span>
+            <span style="color: rgba(0,0,0,0.4); font-size: 11px;"> [{timestamp}]</span>
+            <br/>
+            <span style="color: rgba(0,0,0,0.8);">{text}</span>
+        </div>
+        """
+        self.chat_area.append(html)
+
+    def add_system_message(self, text):
+        html = f"""
+        <div style="margin: 10px 0; text-align: center;">
+            <span style="color: rgba(0,0,0,0.4);">— {text} —</span>
+        </div>
+        """
+        self.chat_area.append(html)
+
+    def clear_chat(self):
+        self.chat_area.clear()
+        self.add_system_message("Чат очищен")
+
+    def bot_message(self):
+        import random
+        messages = [
+            "Привет! Я бот-помощник",
+            "Как дела?",
+            "Интересная беседа!",
+            "PyQt5 — отличный фреймворк!",
+            "Tkinter тоже хорош для простых задач",
+            "Не забудьте сохранить важные сообщения",
+        ]
+        self.add_message("Bot", random.choice(messages))
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -608,7 +826,7 @@ class MainWindow(QMainWindow):
                 margin-bottom: 8px;
                 border-radius: 8px;
                 color: rgba(0, 0, 0, 0.6);
-                min-width: 120px;
+                min-width: 140px;
             }
             QTabBar::tab:selected {
                 background-color: #1559EA;
@@ -644,6 +862,8 @@ class MainWindow(QMainWindow):
         tabs.addTab(ProgressBarTab(), "1. Прогрессбар")
         tabs.addTab(FileDialogTab(), "2. Выбор файла")
         tabs.addTab(TextOutputTab(), "3. Текст + кнопка")
+        tabs.addTab(LocalChatTab(), "5. Локальный чатик")
+
 
         main_layout.addWidget(tabs)
 
