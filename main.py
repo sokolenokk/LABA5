@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QTabWidget,
     QVBoxLayout, QHBoxLayout, QGridLayout, QLabel,
     QPushButton, QLineEdit, QTextEdit, QProgressBar,
-    QFileDialog, QMessageBox, QSlider, QFrame, QScrollArea
+    QFileDialog, QMessageBox, QSlider, QFrame, QScrollArea,
+    QSizePolicy
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
@@ -26,6 +27,7 @@ class ProgressBarTab(QWidget):
         title = QLabel("Демонстрация прогрессбара")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
         layout.addWidget(title)
 
         self.progress_bar = QProgressBar()
@@ -81,7 +83,7 @@ class ProgressBarTab(QWidget):
                 width: 20px;
                 height: 20px;
                 margin: -7px 0;
-                border-radius: 12px;
+                border-radius: 9px;
             }
             QSlider::handle:horizontal:hover {
                 background-color: #3479E9;
@@ -218,6 +220,7 @@ class FileDialogTab(QWidget):
         title = QLabel("Диалоги выбора файлов")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
         layout.addWidget(title)
 
         buttons_frame = QFrame()
@@ -425,11 +428,8 @@ class TextOutputTab(QWidget):
         title = QLabel("Обработка текста")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
         layout.addWidget(title)
-
-        input_label = QLabel("Введите текст:")
-        input_label.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
-        layout.addWidget(input_label)
 
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Введите что-нибудь и нажмите кнопку...")
@@ -587,6 +587,91 @@ class TextOutputTab(QWidget):
         self.stats_label.setText(f"Статистика: {chars} символов, {words} слов")
 
 
+class MatplotlibTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+        layout.setSpacing(20)
+
+        title = QLabel("График Matplotlib в Tkinter")
+        title.setFont(QFont("Arial", 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
+        layout.addWidget(title)
+
+        description = QLabel(
+            "Это задание требует использования Tkinter.\n"
+            "По нажатию кнопки откроется отдельное окно Tkinter\n"
+            "с интерактивным графиком matplotlib."
+        )
+        description.setAlignment(Qt.AlignCenter)
+        description.setStyleSheet("color: rgba(0, 0, 0, 0.5); font-size: 13px;")
+        layout.addWidget(description)
+
+        launch_btn = QPushButton("Открыть график в Tkinter")
+        launch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1559EA;
+                color: white;
+                border: none;
+                padding: 20px 40px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #3479E9;
+            }
+        """)
+        launch_btn.clicked.connect(self.launch_tkinter)
+        layout.addWidget(launch_btn, alignment=Qt.AlignCenter)
+
+        info_frame = QFrame()
+        info_frame.setStyleSheet("""
+            QFrame {
+                background-color: rgba(0, 0, 0, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
+        info_layout = QVBoxLayout(info_frame)
+
+        info_title = QLabel("Что будет в Tkinter-окне:")
+        info_title.setFont(QFont("Arial", 12, QFont.Bold))
+        info_title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
+        info_layout.addWidget(info_title)
+
+        info_text = QLabel(
+            "• Интерактивный график y = x²\n"
+            "• Возможность менять функцию (sin, cos, x³)\n"
+            "• Панель инструментов matplotlib\n"
+            "• Демонстрация интеграции Tkinter + matplotlib"
+        )
+        info_text.setStyleSheet("font-size: 12px; color: rgba(0, 0, 0, 0.6);")
+        info_layout.addWidget(info_text)
+
+        layout.addWidget(info_frame)
+        layout.addStretch()
+
+        self.setLayout(layout)
+
+    def launch_tkinter(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        tkinter_script = os.path.join(current_dir, "matplotlib_tkinter.py")
+
+        if os.path.exists(tkinter_script):
+            subprocess.Popen([sys.executable, tkinter_script])
+        else:
+            QMessageBox.critical(
+                self,
+                "Ошибка",
+                f"Файл matplotlib_tkinter.py не найден!\nПуть: {tkinter_script}"
+            )
+
+
 class LocalChatTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -605,25 +690,27 @@ class LocalChatTab(QWidget):
         title = QLabel("Локальный чат")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
         layout.addWidget(title)
 
         controls_layout = QHBoxLayout()
-
-        user_label = QLabel("Пользователь:")
-        user_label.setStyleSheet("color: rgba(0, 0, 0, 0.6);")
-        controls_layout.addWidget(user_label)
+        controls_layout.setSpacing(10)
 
         self.user1_btn = QPushButton("User 1")
         self.user1_btn.setCheckable(True)
         self.user1_btn.setChecked(True)
         self.user1_btn.clicked.connect(lambda: self.set_user("User1"))
         self.user1_btn.setStyleSheet(self.get_user_btn_style("#1559EA", True))
+        self.user1_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.user1_btn.setFixedHeight(40)
         controls_layout.addWidget(self.user1_btn)
 
         self.user2_btn = QPushButton("User 2")
         self.user2_btn.setCheckable(True)
         self.user2_btn.clicked.connect(lambda: self.set_user("User2"))
         self.user2_btn.setStyleSheet(self.get_user_btn_style("#61A6FA", False))
+        self.user2_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.user2_btn.setFixedHeight(40)
         controls_layout.addWidget(self.user2_btn)
 
         controls_layout.addStretch()
@@ -635,7 +722,7 @@ class LocalChatTab(QWidget):
                 background-color: #61A6FA;
                 color: white;
                 border: none;
-                padding: 8px 15px;
+                padding: 10px 15px;
                 font-size: 13px;
                 font-weight: bold;
                 border-radius: 8px;
@@ -644,6 +731,8 @@ class LocalChatTab(QWidget):
                 background-color: #3479E9;
             }
         """)
+        bot_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        bot_btn.setFixedHeight(40)
         controls_layout.addWidget(bot_btn)
 
         clear_btn = QPushButton("Очистить чат")
@@ -653,7 +742,7 @@ class LocalChatTab(QWidget):
                 background-color: rgba(0, 0, 0, 0.2);
                 color: rgba(0, 0, 0, 0.7);
                 border: none;
-                padding: 8px 15px;
+                padding: 10px 15px;
                 font-size: 13px;
                 font-weight: bold;
                 border-radius: 8px;
@@ -662,6 +751,8 @@ class LocalChatTab(QWidget):
                 background-color: rgba(0, 0, 0, 0.3);
             }
         """)
+        clear_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        clear_btn.setFixedHeight(40)
         controls_layout.addWidget(clear_btn)
 
         layout.addLayout(controls_layout)
@@ -681,6 +772,7 @@ class LocalChatTab(QWidget):
         layout.addWidget(self.chat_area)
 
         input_layout = QHBoxLayout()
+        input_layout.setSpacing(10)
 
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("Введите сообщение...")
@@ -697,6 +789,7 @@ class LocalChatTab(QWidget):
                 border-color: #1559EA;
             }
         """)
+        self.message_input.setFixedHeight(46)
         self.message_input.returnPressed.connect(self.send_message)
         input_layout.addWidget(self.message_input)
 
@@ -715,6 +808,7 @@ class LocalChatTab(QWidget):
                 background-color: #3479E9;
             }
         """)
+        send_btn.setFixedHeight(46)
         send_btn.clicked.connect(self.send_message)
         input_layout.addWidget(send_btn)
 
@@ -722,7 +816,7 @@ class LocalChatTab(QWidget):
 
         self.setLayout(layout)
 
-        self.add_system_message("Добро пожаловать в локальный чат!")
+        self.add_system_message("Ваше обращение очень важно для Вас")
 
     def get_user_btn_style(self, color, active):
         if active:
@@ -731,7 +825,7 @@ class LocalChatTab(QWidget):
                     background-color: {color};
                     color: white;
                     border: none;
-                    padding: 8px 15px;
+                    padding: 10px 15px;
                     font-size: 13px;
                     font-weight: bold;
                     border-radius: 8px;
@@ -743,7 +837,7 @@ class LocalChatTab(QWidget):
                     background-color: rgba(0, 0, 0, 0.05);
                     color: {color};
                     border: 2px solid {color};
-                    padding: 8px 15px;
+                    padding: 10px 15px;
                     font-size: 13px;
                     font-weight: bold;
                     border-radius: 8px;
@@ -804,7 +898,6 @@ class LocalChatTab(QWidget):
         self.add_message("Bot", random.choice(messages))
 
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -819,14 +912,16 @@ class MainWindow(QMainWindow):
                 background-color: white;
                 border-radius: 8px;
             }
+            QTabBar {
+                qproperty-expanding: 1;
+            }
             QTabBar::tab {
                 background-color: rgba(0, 0, 0, 0.05);
-                padding: 10px 15px;
-                margin-right: 4px;
+                padding: 10px 5px;
+                margin-right: 2px;
                 margin-bottom: 8px;
                 border-radius: 8px;
                 color: rgba(0, 0, 0, 0.6);
-                min-width: 140px;
             }
             QTabBar::tab:selected {
                 background-color: #1559EA;
@@ -859,11 +954,13 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(subtitle)
 
         tabs = QTabWidget()
+        tabs.setDocumentMode(True)
+        tabs.setUsesScrollButtons(False)
         tabs.addTab(ProgressBarTab(), "1. Прогрессбар")
         tabs.addTab(FileDialogTab(), "2. Выбор файла")
         tabs.addTab(TextOutputTab(), "3. Текст + кнопка")
+        tabs.addTab(MatplotlibTab(), "4. График Tkinter")
         tabs.addTab(LocalChatTab(), "5. Локальный чатик")
-
 
         main_layout.addWidget(tabs)
 
